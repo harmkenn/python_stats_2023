@@ -6,3 +6,5 @@ plotnine
 scipy
 pingouin
 statistics
+matplotlib
+nbformat
