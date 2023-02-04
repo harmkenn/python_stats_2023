@@ -42,7 +42,7 @@ class MultiApp:
 
         st.sidebar.title("Python Stat Tools v2023.1")
         st.sidebar.subheader("by Ken Harmon")
-        st.session_state.gs_URL = st.sidebar.text_input("Public Google Sheet URL:","https://docs.google.com/spreadsheets/d/1Fx7f6rM5Ce331F9ipsEMn-xRjUKYiR3R_v9IDBusUUY/edit#gid=0") 
+        st.session_state.gs_URL = st.sidebar.text_input("Public Google Sheet URL:","https://docs.google.com/spreadsheets/d/1RYn7555m-q5gVXb9Kyp1AzteOkrUgdon3DHfkbEljT0/edit#gid=0") 
                
         app = st.sidebar.radio(
             '',

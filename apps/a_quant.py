@@ -4,6 +4,7 @@ import pandas as pd
 from plotnine import *
 from plotly.tools import mpl_to_plotly as ggplotly
 import numpy as np
+import plotly.figure_factory as pff
 
 def app():
     # title of the app
@@ -38,42 +39,30 @@ def app():
         st.write("Please upload file to the application.")
             
     # add a select widget to the side bar
-    chart_choice = st.sidebar.radio("",["Histogram","Boxplot","Dotplot","QQplot","Scatterplot"])
+    chart_choice = st.sidebar.radio("",["Histogram","Boxplot & Dotplot","QQplot","Scatterplot"])
     
-    
-    #y = st.sidebar.selectbox('Y-Axis', options=numeric_columns)
-    
-    p = ggplot(df)
     
     if chart_choice == "Histogram":
         with top[1]:
             x = st.selectbox('X-Axis', options=numeric_columns)
             cv = st.selectbox("Color", options=non_numeric_columns)
-            bins = st.slider("Number of Bins", min_value=1,max_value=40, value=7)
-            data = pd.DataFrame({'value': x,'group': cv})
+            bins = st.slider("Bin Width", min_value=1,max_value=20, value=7)
+                              
         if cv != None:
-            fig = px.histogram(data, nbins=bins, color=cv, opacity=.5)
+            fig = px.histogram(df, x = x, color = cv, marginal = 'rug',nbins=bins, facet_row=cv, template= 'simple_white')
         else:
-            fig = px.histogram(data, nbins=bins, color=cv, opacity=.5)
+            fig = px.histogram(df, x = x, marginal = 'rug',nbins=bins)
             
-    if chart_choice == "Boxplot":
+    if chart_choice == "Boxplot & Dotplot":
         with top[1]:
             x = st.selectbox('X-Axis', options=numeric_columns)
             cv = st.selectbox("Color", options=non_numeric_columns)
         if cv != None:
-            p = p + geom_boxplot(aes(x=cv,y=x, fill = cv)) + coord_flip()
+            fig = px.box(df, x=x, y=cv, points="all",color=cv)
         else:
-            p = p + geom_boxplot(aes(x=1,y=x,width=.1),color="darkblue", fill="lightblue") + coord_flip()
+            fig = px.box(df, x=x, points="all")
             
-    if chart_choice == "Dotplot":
-        with top[1]:
-            x = st.selectbox('X-Axis', options=numeric_columns)
-            cv = st.selectbox("Color", options=non_numeric_columns)
-        if cv != None:
-            p = p + geom_jitter(aes(x=cv,y=x, fill = cv, color = cv), size = 2, height = 0, width =.1)+ coord_flip()
-        else:
-            p = p + geom_jitter(aes(x=1,y=x), size = 2, height = 0, width =.1)+ coord_flip()
-            
+         
     if chart_choice == "QQplot":
         with top[1]:
             x = st.selectbox('X-Axis', options=numeric_columns)
@@ -95,7 +84,7 @@ def app():
     
     
     with top[1]:
-        st.pyplot(fig.show())
+        st.plotly_chart(fig, use_container_width=True)
 
     with top[0]:
         st.write(df)
