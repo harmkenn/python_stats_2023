@@ -50,10 +50,11 @@ def app():
             x = st.selectbox('X-Axis', options=numeric_columns)
             cv = st.selectbox("Color", options=non_numeric_columns)
             bins = st.slider("Number of Bins", min_value=1,max_value=40, value=7)
+            data = pd.DataFrame({'value': x,'group': cv})
         if cv != None:
-            p = p + geom_histogram(aes(x=x, fill = cv, color = cv),position= "identity",alpha=.4, bins = bins)
+            fig = px.histogram(data, nbins=bins, color=cv, opacity=.5)
         else:
-            p = p + geom_histogram(aes(x=x),color="darkblue", fill="lightblue", bins = bins)
+            fig = px.histogram(data, nbins=bins, color=cv, opacity=.5)
             
     if chart_choice == "Boxplot":
         with top[1]:
@@ -94,7 +95,7 @@ def app():
     
     
     with top[1]:
-        st.pyplot(ggplot.draw(p))
+        st.pyplot(fig.show())
 
     with top[0]:
         st.write(df)
