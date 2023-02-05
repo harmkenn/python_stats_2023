@@ -1,10 +1,7 @@
 import streamlit as st
 import plotly_express as px
 import pandas as pd
-from plotnine import *
-from plotly.tools import mpl_to_plotly as ggplotly
-import numpy as np
-import plotly.figure_factory as pff
+import statsmodels.api as sm
 
 def app():
     # title of the app
@@ -52,7 +49,9 @@ def app():
             fig = px.histogram(df, x = x, color = cv, marginal = 'rug',nbins=bins, facet_row=cv, template= 'simple_white')
         else:
             fig = px.histogram(df, x = x, marginal = 'rug',nbins=bins)
-            
+        with top[1]:
+            st.plotly_chart(fig, use_container_width=True)    
+        
     if chart_choice == "Boxplot & Dotplot":
         with top[1]:
             x = st.selectbox('X-Axis', options=numeric_columns)
@@ -61,16 +60,29 @@ def app():
             fig = px.box(df, x=x, y=cv, points="all",color=cv)
         else:
             fig = px.box(df, x=x, points="all")
-            
+        with top[1]:
+            st.plotly_chart(fig, use_container_width=True)    
          
     if chart_choice == "QQplot":
         with top[1]:
-            x = st.selectbox('X-Axis', options=numeric_columns)
+            y = st.selectbox('Y-Axis', options=numeric_columns)
             cv = st.selectbox("Color", options=non_numeric_columns)
+            
         if cv != None:
-            p = p + stat_qq(aes(sample=x,color=cv)) + stat_qq_line(aes(sample=x,color=cv))+ labs(x = "Theoretical Quantiles", y = "Sample Quantiles")
+            allcat = list(df[cv].unique())
+            with top[1]:
+                cat1 = st.selectbox('Category',options=allcat) 
+            ny = df[df[cv]==cat1][y]
+            zy = (ny-ny.mean())/ny.std()
+            fig = sm.qqplot(zy, line='45')
+            
         else:
-            p = p + stat_qq(aes(sample=x)) + stat_qq_line(aes(sample=x)) + labs(x = "Theoretical Quantiles", y = "Sample Quantiles")
+            zy = (df[y]-df[y].mean())/df[y].std()
+            fig = sm.qqplot(zy, line='45')
+            
+        
+        with top[1]:
+            st.plotly_chart(fig, use_container_width=True)    
             
     if chart_choice == "Scatterplot":
         with top[1]:
@@ -78,13 +90,14 @@ def app():
             y = st.selectbox('Y-Axis', options=numeric_columns, index = 1)
             cv = st.selectbox("Color", options=non_numeric_columns)
         if cv != None:
-            p = p + geom_point(aes(x=x,y=y,color=cv))
+            fig = px.scatter(df, x = x, y = y, color = cv, trendline='ols')  
         else:
-            p = p + geom_point(aes(x=x,y=y))
+            fig = px.scatter(df, x = x, y = y, trendline='ols') 
+        with top[1]:
+            st.plotly_chart(fig, use_container_width=True) 
     
-    
-    with top[1]:
-        st.plotly_chart(fig, use_container_width=True)
+
+        
 
     with top[0]:
         st.write(df)
