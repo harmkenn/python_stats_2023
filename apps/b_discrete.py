@@ -42,44 +42,21 @@ def app():
         with top[1]:
             x_axis = st.selectbox('X-Axis', options=numeric_columns, index=0)
             prob = st.selectbox('Probabilities', options=numeric_columns, index = 1)
-            cat = 0
+            
             if len(non_numeric_columns) >= 1: 
                 cat = 1
                 #cv = st.selectbox("Group", options=list(df[non_numeric_columns[0]].unique()))    
-        if cat == 0:
-            x = df[x_axis]
-            p_x = df[prob]
+                x = df[x_axis]
+                p_x = df[prob]
             m =  sum(x*p_x)  
             sd = math.sqrt(sum((x-m)**2*p_x))
             data = pd.DataFrame({"Mean":m,"Std Dev":sd},index = [0])
             with top[2]:
-                dph = ggplot(df) + geom_bar(aes(x=df[df.columns[0]],weight=df[df.columns[1]]),color="darkblue", fill="lightblue")
-                st.pyplot(ggplot.draw(dph))
+                fig = px.bar(df, x = x, y = p_x, facet_row='Type', template= 'simple_white')
+                st.plotly_chart(fig, use_container_width=True)
             with bottom[1]:
                 st.write(data)
-        if cat != 0:
-            with bottom[1]:
-                data = pd.DataFrame(columns = ['Type','Mean','Standard Deviation'])
-                drow = 0
-                for type in list(df[non_numeric_columns[0]].unique()):
-                    df1 = df[df[non_numeric_columns[0]]==type]
-                    x = df1[x_axis]
-                    p_x = df1[prob]
-                    data.loc[drow,'Type'] = type
-                    m = sum(x*p_x)
-                    data.loc[drow,'Mean'] =  m  
-                    data.loc[drow,'Standard Deviation'] = math.sqrt(sum((x-m)**2*p_x))
-                    drow = +1
-                st.dataframe(data)
-                    
-            with top[2]:
-                dph = ggplot(df) + geom_bar(aes(x=df[x_axis],weight=df[prob],fill=non_numeric_columns[0],color=non_numeric_columns[0]),position= "identity", alpha = .4)
-                
-                st.pyplot(ggplot.draw(dph))
-
-            
-            
-        
+    
     
     if prob_choice == "Binomial Probability":
         
@@ -103,8 +80,9 @@ def app():
             data = pd.DataFrame({"Mean":bm,"Std Dev":math.sqrt(bv)},index = [0])
             st.write(data)
         with top[0]:
-            bph = ggplot(bdf) + geom_bar(aes(x=bdf["Hits"],weight=bdf["PDF"]),color="darkblue", fill="lightblue")
-            st.pyplot(ggplot.draw(bph))
+            fig = px.bar(bdf, x = 'Hits', y = 'PDF', template= 'simple_white')
+            st.plotly_chart(fig, use_container_width=True)
+            
 
         
     if prob_choice == "Geometric Probability": 
@@ -115,7 +93,7 @@ def app():
             gip, gih = st.text_input("Hit Probability:",.2,key ="1"),st.text_input("Tries:",4,key="2")
             gip = float(gip)
             gih = int(gih)
-            giah = np.r_[0:gih+6]
+            giah = np.r_[0:gih+6/gip]
             cdf = geom.cdf(giah,gip)
             pmf = geom.pmf(giah,gip)
             giah = pd.DataFrame(giah)
@@ -129,8 +107,8 @@ def app():
             data = pd.DataFrame({"Mean":gm,"Std Dev":math.sqrt(gv)},index = [0])
             st.write(data)
         with again[0]:
-            gph = ggplot(gdf) + geom_bar(aes(x=gdf["Hits"],weight=gdf["PDF"]),color="darkblue", fill="lightblue")
-            st.pyplot(ggplot.draw(gph))
+            fig = px.bar(gdf, x = 'Hits', y = 'PDF', template= 'simple_white')
+            st.plotly_chart(fig, use_container_width=True)
 
 
     if prob_choice == "Poisson Probability":      
@@ -140,7 +118,7 @@ def app():
             peh, pah = st.text_input("Expected Hits:",2,key ="3"),st.text_input("Actual Hits:",4,key="4")
             peh = float(peh)
             pah = int(pah)
-            paah = np.r_[0:pah+6]
+            paah = np.r_[0:pah+peh*2]
             cdf = poisson.cdf(paah,peh)
             pmf = poisson.pmf(paah,peh)
             paah = pd.DataFrame(paah)
@@ -154,8 +132,8 @@ def app():
             data = pd.DataFrame({"Mean":pm,"Std Dev":math.sqrt(pv)},index = [0])
             st.write(data)
         with again[0]:
-            pph = ggplot(pdf) + geom_bar(aes(x=pdf["Hits"],weight=pdf["PDF"]),color="darkblue", fill="lightblue")
-            st.pyplot(ggplot.draw(pph))
+            fig = px.bar(pdf, x = 'Hits', y = 'PDF', template= 'simple_white')
+            st.plotly_chart(fig, use_container_width=True)
     
     
     
