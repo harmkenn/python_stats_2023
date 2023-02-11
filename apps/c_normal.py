@@ -1,5 +1,5 @@
 import streamlit as st
-import math
+import plotly_express as px
 from scipy.stats import *
 import pandas as pd
 import numpy as np
@@ -28,26 +28,30 @@ def app():
         g1,g2 = st.columns((1,3))
         
         with g2:
-            x = np.arange(-4,4,.1)
+            x = np.arange(-4,4,.01)
             y = norm.pdf(x)
             ndf = pd.DataFrame({"x":x,"y":y})
-
-            normp = ggplot(ndf)  
-
-            if ls:
-                tp = tp + norm.cdf(lzp)
-                normp = normp + stat_function(fun = norm.pdf, geom = "area",fill = "steelblue", xlim = (-4,lzp))
-            if zpc:
-                tp = tp + norm.cdf(rzp) - norm.cdf(lzp)
-                normp = normp + stat_function(fun = norm.pdf, geom = "area",fill = "steelblue", xlim = (lzp,rzp))
-            if rs:
-                tp = tp + 1 - norm.cdf(rzp)
-                normp = normp + stat_function(fun = norm.pdf, geom = "area",fill = "steelblue", xlim = (rzp,4))
-            normp = normp + geom_segment(aes(x = lzp, y = 0, xend = lzp, yend = norm.pdf(lzp)),color="red")
-            normp = normp + geom_segment(aes(x = rzp, y = 0, xend = rzp, yend = norm.pdf(rzp)),color="red")
-            normp = normp + geom_line(aes(x=x,y=y)) + coord_fixed(ratio = 4) + xlab('z') + ylab('')
+            fig = px.line(ndf, x = 'x', y = 'y', template= 'simple_white')
+            tp = 1
             
-            st.pyplot(ggplot.draw(normp))
+
+            if ls == 0:
+                tp = tp - norm.cdf(lzp)
+                ndf.loc[(ndf.x <= lzp),'y'] = 0
+        
+            if zpc == 0:
+                tp = tp - (norm.cdf(rzp) - norm.cdf(lzp))
+                ndf.loc[(ndf.x >= lzp) & (ndf.x <= rzp),'y'] = 0 
+                
+            if rs == 0:
+                tp = tp - (1 - norm.cdf(rzp))
+                ndf.loc[(ndf.x >= rzp),'y'] = 0
+            
+            fig.add_trace(px.area(ndf, x = 'x', y = 'y', template= 'simple_white').data[0])
+                
+            st.plotly_chart(fig, use_container_width=True)    
+            
+            
         with g1:
             st.markdown(f"Total Probability: {tp}")
             
