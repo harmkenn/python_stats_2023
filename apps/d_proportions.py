@@ -3,7 +3,7 @@ import math
 from scipy.stats import *
 import pandas as pd
 import numpy as np
-from plotnine import *
+import plotly_express as px
 
 def app():
     # title of the app
@@ -29,40 +29,39 @@ def app():
             tsd = math.sqrt(nullp*(1-nullp)/n)
             cise = math.sqrt(p_hat*(1-p_hat)/n)
             z = (p_hat - nullp)/tsd
-            x = np.arange(-4,4,.1)
+            x = np.arange(-4,4,.01)
             y = norm.pdf(x)
             ndf = pd.DataFrame({"x":x,"y":y})
-            normp = ggplot(ndf)  + coord_fixed(ratio = 4) 
+            fig = px.line(ndf, x = 'x', y = 'y', template= 'simple_white')
+            
             if tail_choice == "Left Tail":
                 pv = norm.cdf(z)
                 cz = norm.ppf(alpha)
                 rcz = cz
                 cl = 1 - 2*alpha
-                normp = normp + stat_function(fun = norm.pdf, geom = "area",fill = "steelblue", xlim = (-4,z))
-                normp = normp + stat_function(fun = norm.pdf, geom = "area",fill = "orange", xlim = (-4,cz))
+                ndf.loc[(ndf.x >= z),'y'] = 0
+                
             if tail_choice == "Two Tails":
                 pv = 2*(1-norm.cdf(abs(z)))
                 cz = abs(norm.ppf(alpha/2))
                 rcz = "±" + str(abs(norm.ppf(alpha/2)))
                 cl = 1 - alpha
-                normp = normp + stat_function(fun = norm.pdf, geom = "area",fill = "steelblue", xlim = (-4,-1*abs(z)))
-                normp = normp + stat_function(fun = norm.pdf, geom = "area",fill = "steelblue", xlim = (abs(z),4))
-                normp = normp + stat_function(fun = norm.pdf, geom = "area",fill = "orange", xlim = (-4,-1*abs(cz)))
-                normp = normp + stat_function(fun = norm.pdf, geom = "area",fill = "orange", xlim = (abs(cz),4))
+                ndf.loc[(ndf.x >= -abs(z)) & (ndf.x <= abs(z)),'y'] = 0
+                
             if tail_choice == "Right Tail":
                 pv = 1 - norm.cdf(z)
                 cz = -1 * norm.ppf(alpha)
                 rcz = cz
                 cl = 1 - 2*alpha
-                normp = normp + stat_function(fun = norm.pdf, geom = "area",fill = "steelblue", xlim = (z,4))
-                normp = normp + stat_function(fun = norm.pdf, geom = "area",fill = "orange", xlim = (cz,4))
+                ndf.loc[(ndf.x <= z),'y'] = 0
+            fig.add_trace(px.area(ndf, x = 'x', y = 'y', template= 'simple_white').data[0])
+                
+            st.plotly_chart(fig, use_container_width=True)      
             me = cz * cise
             rme = "±" + str(abs(me))
             data = pd.DataFrame({"p-Hat":p_hat,"z-Score":z,"p-Value":pv,"CV z*":rcz,"Test SD":tsd,"C-Level":cl,"CI SE":cise,"ME":rme},index = [0])  
             st.write(data)
-            normp = normp + geom_segment(aes(x = z, y = 0, xend = z, yend = norm.pdf(z)),color="red")
-            normp = normp + geom_line(aes(x=x,y=y)) + xlab('z') + ylab('')
-            st.pyplot(ggplot.draw(normp))
+            
             lower = p_hat - abs(me)
             upper = p_hat + abs(me) 
             st.write(str(100*cl) + "'%' confidence interval is (" + str(lower) +", "+str(upper)+")") 
@@ -94,41 +93,41 @@ def app():
             cise = math.sqrt(p_hat1*q_hat1/n1+p_hat2*q_hat2/n2)
             z = (p_hat1 - p_hat2)/tsd
             
-            x = np.arange(-4,4,.1)
+            x = np.arange(-4,4,.01)
             y = norm.pdf(x)
             ndf = pd.DataFrame({"x":x,"y":y})
+            fig = px.line(ndf, x = 'x', y = 'y', template= 'simple_white')
             
-            normp = ggplot(ndf) + coord_fixed(ratio = 4) 
             if tail_choice == "Left Tail":
                 pv = norm.cdf(z)
                 cz = norm.ppf(alpha)
                 rcz = cz
                 cl = 1 - 2*alpha
-                normp = normp + stat_function(fun = norm.pdf, geom = "area",fill = "steelblue", xlim = (-4,z))
-                normp = normp + stat_function(fun = norm.pdf, geom = "area",fill = "orange", xlim = (-4,cz))
+                ndf.loc[(ndf.x >= z),'y'] = 0
+                
             if tail_choice == "Two Tails":
                 pv = 2*(1-norm.cdf(abs(z)))
                 cz = abs(norm.ppf(alpha/2))
                 rcz = "±" + str(abs(norm.ppf(alpha/2)))
                 cl = 1 - alpha
-                normp = normp + stat_function(fun = norm.pdf, geom = "area",fill = "steelblue", xlim = (-4,-1*abs(z)))
-                normp = normp + stat_function(fun = norm.pdf, geom = "area",fill = "steelblue", xlim = (abs(z),4))
-                normp = normp + stat_function(fun = norm.pdf, geom = "area",fill = "orange", xlim = (-4,-1*abs(cz)))
-                normp = normp + stat_function(fun = norm.pdf, geom = "area",fill = "orange", xlim = (abs(cz),4))
+                ndf.loc[(ndf.x >= -abs(z)) & (ndf.x <= abs(z)),'y'] = 0
+                
             if tail_choice == "Right Tail":
                 pv = 1 - norm.cdf(z)
                 cz = -1 * norm.ppf(alpha)
                 rcz = cz
                 cl = 1 - 2*alpha
-                normp = normp + stat_function(fun = norm.pdf, geom = "area",fill = "steelblue", xlim = (z,4))
-                normp = normp + stat_function(fun = norm.pdf, geom = "area",fill = "orange", xlim = (cz,4))
+                ndf.loc[(ndf.x <= z),'y'] = 0
+            
+            fig.add_trace(px.area(ndf, x = 'x', y = 'y', template= 'simple_white').data[0])
+                
+            st.plotly_chart(fig, use_container_width=True)   
+                
             me = cz * cise
             rme = "±" + str(abs(me))
             data = pd.DataFrame({"p-Hat 1":p_hat1,"p-Hat 2":p_hat2,"Pooled p-Hat":pp_hat,"Diff p-Hat":dp_hat,"z-Score":z,"p-Value":pv,"CV z*":rcz,"Test SD":tsd,"C-Level":cl,"CI SE":cise,"ME":rme},index = [0])  
             st.write(data)
-            normp = normp + geom_segment(aes(x = z, y = 0, xend = z, yend = norm.pdf(z)),color="red")
-            normp = normp + geom_line(aes(x=x,y=y)) + xlab('z') + ylab('')
-            st.pyplot(ggplot.draw(normp))
+            
             lower = dp_hat - abs(me)
             upper = dp_hat + abs(me) 
             st.write(str(100*cl) + "'%' confidence interval is (" + str(lower) +", "+str(upper)+")") 
