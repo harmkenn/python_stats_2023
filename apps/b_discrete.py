@@ -1,8 +1,6 @@
 import streamlit as st
 import plotly_express as px
 import pandas as pd
-from plotnine import *
-from plotly.tools import mpl_to_plotly as ggplotly
 import numpy as np
 import math
 import scipy.stats as ss

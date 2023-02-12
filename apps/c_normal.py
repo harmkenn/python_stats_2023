@@ -3,7 +3,7 @@ import plotly_express as px
 from scipy.stats import *
 import pandas as pd
 import numpy as np
-from plotnine import *
+
 
 def app():
     # title of the app
