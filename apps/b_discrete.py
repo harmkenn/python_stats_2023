@@ -38,19 +38,20 @@ def app():
                 print(e)
                 st.write("Please upload file to the application.")
         with top[1]:
-            x_axis = st.selectbox('X-Axis', options=numeric_columns, index=0)
-            prob = st.selectbox('Probabilities', options=numeric_columns, index = 1)
+            
             
             if len(non_numeric_columns) >= 1: 
-                cat = 1
-                #cv = st.selectbox("Group", options=list(df[non_numeric_columns[0]].unique()))    
-                x = df[x_axis]
-                p_x = df[prob]
-            m =  sum(x*p_x)  
-            sd = math.sqrt(sum((x-m)**2*p_x))
-            data = pd.DataFrame({"Mean":m,"Std Dev":sd},index = [0])
+                df['Mean'] = df['X']*df['Prob(X)']
+                m = df.groupby(['Type'])['Mean'].sum()
+                df = pd.merge(df,m,on='Type',how='inner')
+                df['SD'] = (df['X']-df['Mean_y'])**2*df['Prob(X)']
+                n = df.groupby(['Type'])['SD'].sum()**(1/2)
+                mn = pd.concat([m,n],axis=1)
+                
+                st.dataframe(mn)
+            
             with top[2]:
-                fig = px.bar(df, x = x, y = p_x, facet_row='Type', template= 'simple_white')
+                fig = px.bar(df, x = 'X', y = 'Prob(X)', facet_row='Type', template= 'simple_white')
                 st.plotly_chart(fig, use_container_width=True)
             with bottom[1]:
                 st.write(data)

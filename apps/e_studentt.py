@@ -1,9 +1,8 @@
 import streamlit as st
-import math
 import scipy
 import pandas as pd
 import numpy as np
-from plotnine import *
+import plotly_express as px
 
 def app():
     # title of the app
@@ -30,29 +29,33 @@ def app():
             df = int(st.text_input("Degrees of Freedom:",2))
     
         with g2:
-            x = np.arange(-5,5,.1)
+            x = np.arange(-5,5,.01)
             ny = scipy.stats.norm.pdf(x)
             ty = scipy.stats.t.pdf(x,df)
             tdf = pd.DataFrame({"x":x,"ny":ny,"ty":ty})
-            tdf["Left"] = np.where(tdf["x"]<=lt,tdf["ty"],0)
-            tdf["Center"] = np.where(np.logical_and(tdf["x"]>=lt,tdf["x"]<=rt),tdf["ty"],0)
-            tdf["Right"] = np.where(tdf["x"]>=rt,tdf["ty"],0)
-
-            tplot = ggplot(tdf) + geom_line(aes(x=x,y=ny),linetype = "dashed", color = "orange") + coord_fixed(ratio = 4) 
-            if ls:
-                tp = tp + scipy.stats.t.cdf(lt,df)
-                tplot = tplot + geom_col(aes(x=x,y="Left"), fill = "steelblue", size = .1, alpha = .4) 
-            if cs:
-                tp = tp + scipy.stats.t.cdf(rt,df) - scipy.stats.t.cdf(lt,df)
-                tplot = tplot + geom_col(aes(x=x,y="Center"), fill = "steelblue", size = .1, alpha = .4)
-            if rs:
-                tp = tp + 1 - scipy.stats.t.cdf(rt,df)
-                tplot = tplot + geom_col(aes(x=x,y="Right"), fill = "steelblue", size = .1, alpha = .4)
-            tplot = tplot + geom_segment(aes(x = lt, y = 0, xend = lt, yend = scipy.stats.t.pdf(lt,df)),color="red")
-            tplot = tplot + geom_segment(aes(x = rt, y = 0, xend = rt, yend = scipy.stats.t.pdf(rt,df)),color="red")
-            tplot = tplot + geom_line(aes(x=x,y=ty)) + xlab('t') + ylab('')
+           
+            fig = px.line(tdf, x = 'x', y = 'ny', template= 'simple_white')            
+            fig.update_traces(line_color='grey', line_dash='dash')
             
-            st.pyplot(ggplot.draw(tplot))
+            fig.add_trace(px.line(tdf, x = 'x', y = 'ty', template= 'simple_white').data[0])
+            tp = 1
+
+            if ls == 0:
+                tp = tp - scipy.stats.t.cdf(lt,df)
+                tdf.loc[(tdf.x <= lt),'ty'] = 0
+                
+            if cs == 0:
+                tp = tp - (scipy.stats.t.cdf(rt,df) - scipy.stats.t.cdf(lt,df))
+                tdf.loc[(tdf.x >= lt) & (tdf.x <= rt),'ty'] = 0
+                
+            if rs == 0:
+                tp = tp - (1 - scipy.stats.t.cdf(rt,df))
+                tdf.loc[(tdf.x >= rt),'ty'] = 0
+            
+            fig.add_trace(px.area(tdf, x = 'x', y = 'ty', template= 'simple_white').data[0])
+            
+            st.plotly_chart(fig, use_container_width=True)  
+                
         with g1:
             st.markdown(f"Total Probability: {tp}")
             
@@ -70,43 +73,40 @@ def app():
         with g1:
             df = int(st.text_input("Degrees of Freedom:",2))
         with g2:
-            x = np.arange(-5,5,.1)
-            y = scipy.stats.t.pdf(x,df)
-            tdf = pd.DataFrame({"x":x,"y":y})
-            tplot = ggplot(tdf)  + coord_fixed(ratio = 4) 
+            x = np.arange(-5,5,.01)
+            ny = scipy.stats.norm.pdf(x)
+            ty = scipy.stats.t.pdf(x,df)
+            tdf = pd.DataFrame({"x":x,"ny":ny,"ty":ty})
+            fig = px.line(tdf, x = 'x', y = 'ny', template= 'simple_white')            
+            fig.update_traces(line_color='grey', line_dash='dash')
             
-            
-            
+            fig.add_trace(px.line(tdf, x = 'x', y = 'ty', template= 'simple_white').data[0])
+
 
             if shade == "Left":
                 t = scipy.stats.t.ppf(sp/100,df)
                 lt = t
                 rt = t
-                tdf["Left"] = np.where(tdf["x"]<=lt,tdf["y"],0)
-                tplot = ggplot(tdf)  + coord_fixed(ratio = 4)
-                tplot = tplot + geom_col(aes(x=x,y="Left"), fill = "steelblue", size = .1, alpha = .4) 
+                tdf.loc[(tdf.x >= lt),'ty'] = 0
+
                 
             if shade == "Center":
                 t = scipy.stats.t.ppf(((100-sp)/2)/100,df)
                 lt = t 
                 rt = -t
-                tdf["Center"] = np.where(np.logical_and(tdf["x"]>=lt,tdf["x"]<=rt),tdf["y"],0)
-                tplot = ggplot(tdf)  + coord_fixed(ratio = 4)
-                tplot = tplot + geom_col(aes(x=x,y="Center"), fill = "steelblue", size = .1, alpha = .4)
+                tdf.loc[(tdf.x <= lt) | (tdf.x >= rt),'ty'] = 0
+
                 
             if shade == "Right":
                 t = scipy.stats.t.ppf((100-sp)/100,df)
                 lt = t
                 rt = t
-                tdf["Right"] = np.where(tdf["x"]>=rt,tdf["y"],0)
-                tplot = ggplot(tdf)  + coord_fixed(ratio = 4)
-                tplot = tplot + geom_col(aes(x=x,y="Right"), fill = "steelblue", size = .1, alpha = .4)
-                
-            tplot = tplot + geom_segment(aes(x = lt, y = 0, xend = lt, yend = scipy.stats.t.pdf(lt,df)),color="red")
-            tplot = tplot + geom_segment(aes(x = rt, y = 0, xend = rt, yend = scipy.stats.t.pdf(rt,df)),color="red")
-            tplot = tplot + geom_line(aes(x=x,y=y)) + xlab('t') + ylab('')
+                tdf.loc[(tdf.x <= rt),'ty'] = 0
             
-            st.pyplot(ggplot.draw(tplot))
+            fig.add_trace(px.area(tdf, x = 'x', y = 'ty', template= 'simple_white').data[0])
+            
+            st.plotly_chart(fig, use_container_width=True)  
+
         with g1:
             st.markdown(f"t-Score: {t}")
             if shade == "Center":
