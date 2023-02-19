@@ -2,14 +2,15 @@ import streamlit as st
 import pandas as pd
 import scipy as sp
 import numpy as np
-from plotnine import *
-import pingouin as pg
+import plotly_express as px
+import statsmodels.api as sm
+
 
 
 def app():
     # title of the app
     st.markdown("Linear Regression") 
-    lrplot = ggplot() + coord_fixed(ratio = .1)
+    
     c1,c2 = st.columns(2)
     with c1:
         gs_URL = st.session_state.gs_URL 
@@ -54,19 +55,22 @@ def app():
             sr = np.sqrt(fsdf['sqresid'].sum()/(fsdf['sqresid'].count()-2))
             data = pd.DataFrame({"r":r,'R-Squared':r**2,'se (resid)':sr,'Intercept':intercept,'Slope':slope,'se (slope)':ses,'t (slope)':slope/ses,'p (slope)':p},index = [0]).T 
             st.write(data)
-            lrplot = ggplot(aes(x=fsdf[xvar],y=fsdf[yvar])) + coord_fixed(ratio = .1)
-            lrplot = lrplot + geom_point(color = 'steelblue') + stat_smooth(method='lm') 
+            
              
     st.markdown('''---''')
     d1,d2 = st.columns(2)
     with d1:
         lr_graph = st.selectbox('Graph',["Scatter Plot","Residual QQPlot"])
         if lr_graph == "Scatter Plot":
+           fig = px.scatter(fsdf, x = xvar, y = yvar, trendline='ols') 
+           st.plotly_chart(fig, use_container_width=True)   
             
-            st.pyplot(ggplot.draw(lrplot)) 
         if lr_graph == "Residual QQPlot":
-            p = pg.qqplot(fsdf['resid'], dist='norm')
-            st.pyplot(ggplot.draw(p))
+            
+            zy = (fsdf['resid']-fsdf['resid'].mean())/fsdf['resid'].std()
+            fig = sm.qqplot(zy, line='45')
+            st.plotly_chart(fig, use_container_width=True)   
+            
             ddd = sp.stats.shapiro(fsdf['resid'])[1]
             st.write("Shapiro p-Value: " + str(ddd))    
     with d2:

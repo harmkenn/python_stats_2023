@@ -1,6 +1,7 @@
 import streamlit as st
+import plotly_express as px
 import pandas as pd
-from plotnine import *
+import statsmodels.api as sm
 import scipy as sp
 import numpy as np
 
@@ -8,11 +9,11 @@ def app():
     # title of the app
     
     anova_choice = st.sidebar.radio("ANOVA Choice",["Data","Statistics"])
-    st.markdown('ANOVA') 
+    
     if anova_choice == "Data":
         c1,c2 = st.columns(2)
         with c1:
-            
+            st.markdown('ANOVA') 
             gs_URL = st.session_state.gs_URL 
             googleSheetId = gs_URL.split("spreadsheets/d/")[1].split("/edit")[0]
             worksheetName = st.text_input("Sheet Name:","Bivariate")
@@ -27,10 +28,11 @@ def app():
             global non_numeric_columns
             numeric_columns = list(df.select_dtypes(['float', 'int']).columns)
             non_numeric_columns = list(df.select_dtypes(['object']).columns)
-            st.sidebar.markdown("One Sample Data")
-            quant = st.sidebar.selectbox('Quantitative Data', options=numeric_columns)
-            cat = st.sidebar.selectbox('Categorical Data', options=non_numeric_columns)
+            
         with c2:
+            st.markdown("One Sample Data")
+            quant = st.selectbox('Quantitative Data', options=numeric_columns)
+            cat = st.selectbox('Categorical Data', options=non_numeric_columns)
             sdf = df[[quant,cat]]
             sdfs = sdf.groupby(cat).describe()
             sdfs = sdfs[quant]
@@ -41,8 +43,10 @@ def app():
             st.markdown("Average of all " + quant + "s: " + str(allmean))
             st.markdown("Average of the " + cat +" Mean " + quant + "s: " + str(meanmeans))
             st.dataframe(sdfs[['count','mean','std','DMB','VW']])
-            p = ggplot() + geom_boxplot(aes(x=sdf[cat],y=sdf[quant], fill = sdf[cat])) + coord_flip()
-            st.pyplot(ggplot.draw(p))
+            fig = px.box(df, x=quant, y=cat, points="all",color=cat)
+            st.plotly_chart(fig, use_container_width=True)  
+            
+            
         st.markdown('''---''')
         d1,d2 = st.columns((5,1))
         with d1:
@@ -63,18 +67,17 @@ def app():
             cv = sp.stats.f.ppf(1-alpha,bdf,wdf) 
             st.markdown("F Critical Value: "+ str(cv))
             maxF = max(aF,cv)
-            x = np.arange(0,maxF*1.1,.03)
+            x = np.arange(0,maxF*1.1,.01)
+            
             Fy = sp.stats.f.pdf(x,bdf,wdf)
             Fdf = pd.DataFrame({"x":x,"Fy":Fy})
-            Fplot = ggplot(Fdf) + coord_fixed(ratio = .5*maxF)
-            Fdf["Right"] = np.where(Fdf["x"]>=aF,Fdf["Fy"],0)
             
-            Fdf['alpha'] = np.where(Fdf["x"]>=cv,Fdf["Fy"],0)
-            Fplot = Fplot + geom_col(aes(x=x,y="Right"), fill = "steelblue", size = .1, alpha = .4)
-            Fplot = Fplot + geom_col(aes(x=x,y="alpha"), fill = "red", size = .1, alpha = .4)
-            Fplot = Fplot + geom_segment(aes(x = aF, y = 0, xend = aF, yend = sp.stats.f.pdf(aF,bdf,wdf)),color="red")
-            Fplot = Fplot + geom_line(aes(x=x,y=Fy)) + xlab('F') + ylab('')
-            st.pyplot(ggplot.draw(Fplot))
+            fig = px.line(Fdf, x = 'x', y = 'Fy', template= 'simple_white')
+            Fdf.loc[(Fdf.x <= aF),'Fy'] = 0
+            fig.add_trace(px.area(Fdf, x = 'x', y = 'Fy', template= 'simple_white').data[0])
+            st.plotly_chart(fig, use_container_width=True) 
+            
+            
     
     if anova_choice == "Statistics":
         c1,c2 = st.columns(2)
@@ -104,6 +107,8 @@ def app():
             st.markdown("Average of the means: " + str(meanmeans))
             st.dataframe(sdfs[['count','mean','std','DMB','VW']])
             
+            
+            
         st.markdown('''---''')
         d1,d2 = st.columns((5,1))
         with d1:
@@ -124,16 +129,13 @@ def app():
             cv = sp.stats.f.ppf(1-alpha,bdf,wdf) 
             st.markdown("F Critical Value: "+ str(cv))
             maxF = max(aF,cv)
-            x = np.arange(0,maxF*1.1,.03)
+            x = np.arange(0,maxF*1.1,maxF/1000)
             Fy = sp.stats.f.pdf(x,bdf,wdf)
             Fdf = pd.DataFrame({"x":x,"Fy":Fy})
-            Fplot = ggplot(Fdf) + coord_fixed(ratio = .5*maxF)
-            Fdf["Right"] = np.where(Fdf["x"]>=aF,Fdf["Fy"],0)
             
-            Fdf['alpha'] = np.where(Fdf["x"]>=cv,Fdf["Fy"],0)
-            Fplot = Fplot + geom_col(aes(x=x,y="Right"), fill = "steelblue", size = .1, alpha = .4)
-            Fplot = Fplot + geom_col(aes(x=x,y="alpha"), fill = "red", size = .1, alpha = .4)
-            Fplot = Fplot + geom_segment(aes(x = aF, y = 0, xend = aF, yend = sp.stats.f.pdf(aF,bdf,wdf)),color="red")
-            Fplot = Fplot + geom_line(aes(x=x,y=Fy)) + xlab('F') + ylab('')
-            st.pyplot(ggplot.draw(Fplot))        
+            fig = px.line(Fdf, x = 'x', y = 'Fy', template= 'simple_white')
+            Fdf.loc[(Fdf.x <= aF),'Fy'] = 0
+            fig.add_trace(px.area(Fdf, x = 'x', y = 'Fy', template= 'simple_white').data[0])
+            st.plotly_chart(fig, use_container_width=True) 
+                
     

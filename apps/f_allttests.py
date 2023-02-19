@@ -4,9 +4,9 @@ import math
 import scipy
 import pandas as pd
 import numpy as np
-from plotnine import *
-import pingouin as pg
+import statsmodels.api as sm
 import statistics as stats
+import plotly_express as px
 
 
 def app():
@@ -14,7 +14,7 @@ def app():
     t_choice = st.sidebar.radio("T-Test Settings",["One Sample Data","One Sample Stats","Paired Sample Data","Two Sample Data","Two Sample Stats"])
     if t_choice == "One Sample Data":
         
-        c1,c2,c3 = st.columns((2,1,1))
+        c1,c2,c3 = st.columns((1,1,1))
         with c1:
             st.markdown("One Sample Data")
             gs_URL = st.session_state.gs_URL 
@@ -58,15 +58,16 @@ def app():
                 st.write(qstat)
             fsdf=pd.DataFrame(fsdf)
         with c3:
-            p = pg.qqplot(fsdf[quant], dist='norm')
-            st.pyplot(ggplot.draw(p))
+            zy = (fsdf[quant]-fsdf[quant].mean())/fsdf[quant].std()
+            fig = sm.qqplot(zy, line='45')
+            st.plotly_chart(fig, use_container_width=True) 
             ddd = shapiro(fsdf[quant])[1]
             st.write("Shapiro p-Value: " + str(ddd))
         
         st.markdown('''---''')
         d1,d2,d3 = st.columns((1,2,3))
         with d1:
-            nh = float(st.text_input("Null Hypothesis:",160))
+            nh = float(st.text_input("Null Hypothesis:",67))
             alpha = float(st.text_input("Alpha:",0.05))
             tail_choice = st.radio("",["Left Tail","Two Tails","Right Tail"])
         with d2:
@@ -76,15 +77,17 @@ def app():
             s = qstat.iloc[2,0]
             sem = s/math.sqrt(n)
             ts = (xbar - nh)/sem
-            x = np.arange(-5,5,.1)
+            x = np.arange(-5,5,.01)
             ty = scipy.stats.t.pdf(x,df)
             tdf = pd.DataFrame({"x":x,"ty":ty})
-            tplot = ggplot(tdf) + coord_fixed(ratio = 4)
+            fig = px.line(tdf, x = 'x', y = 'ty', template= 'simple_white') 
+
+            
             if tail_choice == "Left Tail":
                 pvalue = scipy.stats.t.cdf(ts,df)
                 cv = scipy.stats.t.ppf(alpha,df)
-                tdf["Left"] = np.where(tdf["x"]<=ts,tdf["ty"],0)
-                tplot = tplot + geom_col(aes(x=x,y="Left"), fill = "steelblue", size = .1, alpha = .4)
+                tdf.loc[(tdf.x >= ts),'ty'] = 0
+                
                 cl = 1 - 2*alpha
             if tail_choice == "Two Tails":
                 rts = abs(ts)
@@ -92,26 +95,78 @@ def app():
                 pvalue = 2*scipy.stats.t.cdf(lts,df)
                 cv = scipy.stats.t.ppf(alpha/2,df)
                 cv = abs(cv)
-                tdf["Center"] = np.where(np.logical_or(tdf["x"]>=rts,tdf["x"]<=lts),tdf["ty"],0)
-                tplot = tplot + geom_col(aes(x=x,y="Center"), fill = "steelblue", size = .1, alpha = .4)
+                tdf.loc[(tdf.x >= -abs(ts)) & (tdf.x <= abs(ts)),'ty'] = 0
+                
                 cl = 1-alpha
             if tail_choice == "Right Tail":
                 pvalue = 1-scipy.stats.t.cdf(ts,df)
                 cv = scipy.stats.t.ppf(1-alpha,df)
-                tdf["Right"] = np.where(tdf["x"]>=ts,tdf["ty"],0)
-                tplot = tplot + geom_col(aes(x=x,y="Right"), fill = "steelblue", size = .1, alpha = .4)
+                tdf.loc[(tdf.x <= ts),'ty'] = 0
+                
                 cl=1-2*alpha
             me = cv*sem
             data = pd.DataFrame({"n":n,"df":df,"x-bar":xbar,"s":s,"sem":sem,"CV t*":cv,"ME":me,"t-Score":ts,"p-Value":pvalue},index = [0]).T 
             st.write(data) 
         with d3:
-            tplot = tplot + geom_segment(aes(x = ts, y = 0, xend = ts, yend = scipy.stats.t.pdf(ts,df)),color="red")
-            tplot = tplot + geom_line(aes(x=x,y=ty)) + xlab('t') + ylab('')
-            st.pyplot(ggplot.draw(tplot))
+            fig.add_trace(px.area(tdf, x = 'x', y = 'ty', template= 'simple_white').data[0])
+            st.plotly_chart(fig, use_container_width=True)  
             lower = xbar - abs(me)
             upper = xbar + abs(me) 
             st.write(str(100*cl) + "'%' confidence interval is (" + str(lower) +", "+str(upper)+")") 
-    
+
+    if t_choice == "One Sample Stats":
+        c1,c2 = st.columns((3,1))
+        with c1:
+            n = int(st.text_input("Sample Size (n):",12))
+            
+            xbar = float(st.text_input("Sample Mean (x-Bar):", 3.7))
+            s = float(st.text_input("Sample Standard Deviation (s):", 1.2))
+            
+        st.markdown('''---''')
+        d1,d2,d3 = st.columns((1,2,3))
+        with d1:
+            nh = float(st.text_input("Null Hypothesis:",4))
+            alpha = float(st.text_input("Alpha:",0.05))
+            tail_choice = st.radio("",["Left Tail","Two Tails","Right Tail"])
+        with d2:
+            
+            df = n-1
+            sem = s/math.sqrt(n)
+            ts = (xbar - nh)/sem
+            x = np.arange(-5,5,.01)
+            ty = scipy.stats.t.pdf(x,df)
+            tdf = pd.DataFrame({"x":x,"ty":ty})
+            fig = px.line(tdf, x = 'x', y = 'ty', template= 'simple_white') 
+            
+            if tail_choice == "Left Tail":
+                pvalue = scipy.stats.t.cdf(ts,df)
+                cv = scipy.stats.t.ppf(alpha,df)
+                tdf.loc[(tdf.x >= ts),'ty'] = 0
+                cl = 1 - 2*alpha
+            if tail_choice == "Two Tails":
+                rts = abs(ts)
+                lts = -rts
+                pvalue = 2*scipy.stats.t.cdf(lts,df)
+                cv = scipy.stats.t.ppf(alpha/2,df)
+                cv = abs(cv)
+                tdf.loc[(tdf.x >= -abs(ts)) & (tdf.x <= abs(ts)),'ty'] = 0
+                cl = 1-alpha
+            if tail_choice == "Right Tail":
+                pvalue = 1-scipy.stats.t.cdf(ts,df)
+                cv = scipy.stats.t.ppf(1-alpha,df)
+                tdf.loc[(tdf.x <= ts),'ty'] = 0
+                cl=1-2*alpha
+            me = cv*sem
+            data = pd.DataFrame({"n":n,"df":df,"x-bar":xbar,"s":s,"sem":sem,"CV t*":cv,"ME":me,"t-Score":ts,"p-Value":pvalue},index = [0]).T 
+            st.write(data) 
+        with d3:
+            fig.add_trace(px.area(tdf, x = 'x', y = 'ty', template= 'simple_white').data[0])
+            st.plotly_chart(fig, use_container_width=True) 
+            
+            lower = xbar - abs(me)
+            upper = xbar + abs(me) 
+            st.write(str(100*cl) + "'%' confidence interval is (" + str(lower) +", "+str(upper)+")")  
+   
     if t_choice == "Paired Sample Data":
         c1,c2,c3 = st.columns((2,1,1))
         with c1:
@@ -159,8 +214,9 @@ def app():
                 st.write(pd.DataFrame(fsdf.describe()))
             fsdf=pd.DataFrame(fsdf)
         with c3:
-            p = pg.qqplot(fsdf[quant], dist='norm')
-            st.pyplot(ggplot.draw(p))
+            zy = (fsdf[quant]-fsdf[quant].mean())/fsdf[quant].std()
+            fig = sm.qqplot(zy, line='45')
+            st.plotly_chart(fig, use_container_width=True) 
             ddd = shapiro(fsdf[quant])[1]
             st.write("Shapiro p-Value: " + str(ddd))
         
@@ -168,7 +224,7 @@ def app():
         st.markdown('''---''')
         d1,d2,d3 = st.columns((1,2,3))
         with d1:
-            nh = float(st.text_input("Null Hypothesis:",0))
+            nh = float(st.text_input("Null Hypothesis:",-2))
             alpha = float(st.text_input("Alpha:",0.05))
             tail_choice = st.radio("",["Left Tail","Two Tails","Right Tail"])
         with d2:
@@ -178,15 +234,15 @@ def app():
             s = stats.stdev(fsdf[quant])
             sem = s/math.sqrt(n)
             ts = (xbar - nh)/sem
-            x = np.arange(-5,5,.1)
+            x = np.arange(-5,5,.01)
             ty = scipy.stats.t.pdf(x,df)
             tdf = pd.DataFrame({"x":x,"ty":ty})
-            tplot = ggplot(tdf) + coord_fixed(ratio = 4)
+            fig = px.line(tdf, x = 'x', y = 'ty', template= 'simple_white') 
+            
             if tail_choice == "Left Tail":
                 pvalue = scipy.stats.t.cdf(ts,df)
                 cv = scipy.stats.t.ppf(alpha,df)
-                tdf["Left"] = np.where(tdf["x"]<=ts,tdf["ty"],0)
-                tplot = tplot + geom_col(aes(x=x,y="Left"), fill = "steelblue", size = .1, alpha = .4)
+                tdf.loc[(tdf.x >= ts),'ty'] = 0
                 cl = 1 - 2*alpha
             if tail_choice == "Two Tails":
                 rts = abs(ts)
@@ -194,22 +250,19 @@ def app():
                 pvalue = 2*scipy.stats.t.cdf(lts,df)
                 cv = scipy.stats.t.ppf(alpha/2,df)
                 cv = abs(cv)
-                tdf["Center"] = np.where(np.logical_or(tdf["x"]>=rts,tdf["x"]<=lts),tdf["ty"],0)
-                tplot = tplot + geom_col(aes(x=x,y="Center"), fill = "steelblue", size = .1, alpha = .4)
+                tdf.loc[(tdf.x >= -abs(ts)) & (tdf.x <= abs(ts)),'ty'] = 0
                 cl = 1-alpha
             if tail_choice == "Right Tail":
                 pvalue = 1-scipy.stats.t.cdf(ts,df)
                 cv = scipy.stats.t.ppf(1-alpha,df)
-                tdf["Right"] = np.where(tdf["x"]>=ts,tdf["ty"],0)
-                tplot = tplot + geom_col(aes(x=x,y="Right"), fill = "steelblue", size = .1, alpha = .4)
+                tdf.loc[(tdf.x <= ts),'ty'] = 0
                 cl=1-2*alpha
             me = cv*sem
             data = pd.DataFrame({"n":n,"df":df,"x-bar":xbar,"s":s,"sem":sem,"CV t*":cv,"ME":me,"t-Score":ts,"p-Value":pvalue},index = [0]).T 
             st.write(data) 
         with d3:
-            tplot = tplot + geom_segment(aes(x = ts, y = 0, xend = ts, yend = scipy.stats.t.pdf(ts,df)),color="red")
-            tplot = tplot + geom_line(aes(x=x,y=ty)) + xlab('t') + ylab('')
-            st.pyplot(ggplot.draw(tplot))
+            fig.add_trace(px.area(tdf, x = 'x', y = 'ty', template= 'simple_white').data[0])
+            st.plotly_chart(fig, use_container_width=True)  
             lower = xbar - abs(me)
             upper = xbar + abs(me) 
             st.write(str(100*cl) + "'%' confidence interval is (" + str(lower) +", "+str(upper)+")") 
@@ -258,15 +311,17 @@ def app():
                 
             with c3:
                 gp1 = fsdf[fsdf[cat]==g1][quant]
-                p = pg.qqplot(gp1, dist='norm')
-                st.pyplot(ggplot.draw(p))
+                zy = (gp1-gp1.mean())/gp1.std()
+                fig = sm.qqplot(zy, line='45')
+                st.plotly_chart(fig, use_container_width=True) 
                 shap1 = scipy.stats.shapiro(gp1)
                 st.write("Shapiro p-Value: " + str(shap1[1]))
                 
             
                 gp2 = fsdf[fsdf[cat]==g2][quant]
-                p = pg.qqplot(gp2, dist='norm')
-                st.pyplot(ggplot.draw(p))
+                zy = (gp2-gp2.mean())/gp2.std()
+                fig = sm.qqplot(zy, line='45')
+                st.plotly_chart(fig, use_container_width=True) 
                 shap2 = scipy.stats.shapiro(gp2)
                 st.write("Shapiro p-Value: " + str(shap2[1]))
             
@@ -300,15 +355,15 @@ def app():
                 ts = (xbard-nh)/sem
                 
                 #st.write(ts,df,sem)
-                x = np.arange(-5,5,.1)
+                x = np.arange(-5,5,.01)
                 ty = scipy.stats.t.pdf(x,df)
                 tdf = pd.DataFrame({"x":x,"ty":ty})
-                tplot = ggplot(tdf) + coord_fixed(ratio = 4)
+                fig = px.line(tdf, x = 'x', y = 'ty', template= 'simple_white') 
+                
                 if tail_choice == "Left Tail":
                     pvalue = scipy.stats.t.cdf(ts,df)
                     cv = scipy.stats.t.ppf(alpha,df)
-                    tdf["Left"] = np.where(tdf["x"]<=ts,tdf["ty"],0)
-                    tplot = tplot + geom_col(aes(x=x,y="Left"), fill = "steelblue", size = .1, alpha = .4)
+                    tdf.loc[(tdf.x >= ts),'ty'] = 0
                     cl = 1 - 2*alpha
                 if tail_choice == "Two Tails":
                     rts = abs(ts)
@@ -316,80 +371,24 @@ def app():
                     pvalue = 2*scipy.stats.t.cdf(lts,df)
                     cv = scipy.stats.t.ppf(alpha/2,df)
                     cv = abs(cv)
-                    tdf["Center"] = np.where(np.logical_or(tdf["x"]>=rts,tdf["x"]<=lts),tdf["ty"],0)
-                    tplot = tplot + geom_col(aes(x=x,y="Center"), fill = "steelblue", size = .1, alpha = .4)
+                    tdf.loc[(tdf.x >= -abs(ts)) & (tdf.x <= abs(ts)),'ty'] = 0
                     cl = 1-alpha
                 if tail_choice == "Right Tail":
                     pvalue = 1-scipy.stats.t.cdf(ts,df)
                     cv = scipy.stats.t.ppf(1-alpha,df)
-                    tdf["Right"] = np.where(tdf["x"]>=ts,tdf["ty"],0)
-                    tplot = tplot + geom_col(aes(x=x,y="Right"), fill = "steelblue", size = .1, alpha = .4)
+                    tdf.loc[(tdf.x <= ts),'ty'] = 0
                     cl=1-2*alpha
                 me = cv*sem
                 data = pd.DataFrame({"df":df,"x-bar-d":xbard,"sem":sem,"CV t*":cv,"ME":abs(me),"t-Score":ts,"p-Value":pvalue},index = [0]).T 
                 st.write(data) 
             with d3:
-                tplot = tplot + geom_segment(aes(x = ts, y = 0, xend = ts, yend = scipy.stats.t.pdf(ts,df)),color="red")
-                tplot = tplot + geom_line(aes(x=x,y=ty)) + xlab('t') + ylab('')
-                st.pyplot(ggplot.draw(tplot))
+                fig.add_trace(px.area(tdf, x = 'x', y = 'ty', template= 'simple_white').data[0])
+                st.plotly_chart(fig, use_container_width=True)  
                 lower = xbard - abs(me)
                 upper = xbard + abs(me) 
                 st.write(str(100*cl) + "'%' confidence interval is (" + str(lower) +", "+str(upper)+")") 
 
-    if t_choice == "One Sample Stats":
-        c1,c2 = st.columns((3,1))
-        with c1:
-            n = int(st.text_input("Sample Size (n):",12))
-            
-            xbar = float(st.text_input("Sample Mean (x-Bar):", 3.7))
-            s = float(st.text_input("Sample Standard Deviation (s):", 1.2))
-            
-        st.markdown('''---''')
-        d1,d2,d3 = st.columns((1,2,3))
-        with d1:
-            nh = float(st.text_input("Null Hypothesis:",2))
-            alpha = float(st.text_input("Alpha:",0.05))
-            tail_choice = st.radio("",["Left Tail","Two Tails","Right Tail"])
-        with d2:
-            
-            df = n-1
-            sem = s/math.sqrt(n)
-            ts = (xbar - nh)/sem
-            x = np.arange(-5,5,.1)
-            ty = scipy.stats.t.pdf(x,df)
-            tdf = pd.DataFrame({"x":x,"ty":ty})
-            tplot = ggplot(tdf) + coord_fixed(ratio = 4)
-            if tail_choice == "Left Tail":
-                pvalue = scipy.stats.t.cdf(ts,df)
-                cv = scipy.stats.t.ppf(alpha,df)
-                tdf["Left"] = np.where(tdf["x"]<=ts,tdf["ty"],0)
-                tplot = tplot + geom_col(aes(x=x,y="Left"), fill = "steelblue", size = .1, alpha = .4)
-                cl = 1 - 2*alpha
-            if tail_choice == "Two Tails":
-                rts = abs(ts)
-                lts = -rts
-                pvalue = 2*scipy.stats.t.cdf(lts,df)
-                cv = scipy.stats.t.ppf(alpha/2,df)
-                cv = abs(cv)
-                tdf["Center"] = np.where(np.logical_or(tdf["x"]>=rts,tdf["x"]<=lts),tdf["ty"],0)
-                tplot = tplot + geom_col(aes(x=x,y="Center"), fill = "steelblue", size = .1, alpha = .4)
-                cl = 1-alpha
-            if tail_choice == "Right Tail":
-                pvalue = 1-scipy.stats.t.cdf(ts,df)
-                cv = scipy.stats.t.ppf(1-alpha,df)
-                tdf["Right"] = np.where(tdf["x"]>=ts,tdf["ty"],0)
-                tplot = tplot + geom_col(aes(x=x,y="Right"), fill = "steelblue", size = .1, alpha = .4)
-                cl=1-2*alpha
-            me = cv*sem
-            data = pd.DataFrame({"n":n,"df":df,"x-bar":xbar,"s":s,"sem":sem,"CV t*":cv,"ME":me,"t-Score":ts,"p-Value":pvalue},index = [0]).T 
-            st.write(data) 
-        with d3:
-            tplot = tplot + geom_segment(aes(x = ts, y = 0, xend = ts, yend = scipy.stats.t.pdf(ts,df)),color="red")
-            tplot = tplot + geom_line(aes(x=x,y=ty)) + xlab('t') + ylab('')
-            st.pyplot(ggplot.draw(tplot))
-            lower = xbar - abs(me)
-            upper = xbar + abs(me) 
-            st.write(str(100*cl) + "'%' confidence interval is (" + str(lower) +", "+str(upper)+")")        
+      
             
     if t_choice == "Two Sample Stats":
         c1,c2 = st.columns((2,2))
@@ -424,15 +423,14 @@ def app():
             ts = (xbard-nh)/sem
             
             #st.write(ts,df,sem)
-            x = np.arange(-5,5,.1)
+            x = np.arange(-5,5,.01)
             ty = scipy.stats.t.pdf(x,df)
             tdf = pd.DataFrame({"x":x,"ty":ty})
-            tplot = ggplot(tdf) + coord_fixed(ratio = 4)
+            fig = px.line(tdf, x = 'x', y = 'ty', template= 'simple_white')
             if tail_choice == "Left Tail":
                 pvalue = scipy.stats.t.cdf(ts,df)
                 cv = scipy.stats.t.ppf(alpha,df)
-                tdf["Left"] = np.where(tdf["x"]<=ts,tdf["ty"],0)
-                tplot = tplot + geom_col(aes(x=x,y="Left"), fill = "steelblue", size = .1, alpha = .4)
+                tdf.loc[(tdf.x >= ts),'ty'] = 0
                 cl = 1 - 2*alpha
             if tail_choice == "Two Tails":
                 rts = abs(ts)
@@ -440,22 +438,19 @@ def app():
                 pvalue = 2*scipy.stats.t.cdf(lts,df)
                 cv = scipy.stats.t.ppf(alpha/2,df)
                 cv = abs(cv)
-                tdf["Center"] = np.where(np.logical_or(tdf["x"]>=rts,tdf["x"]<=lts),tdf["ty"],0)
-                tplot = tplot + geom_col(aes(x=x,y="Center"), fill = "steelblue", size = .1, alpha = .4)
+                tdf.loc[(tdf.x >= -abs(ts)) & (tdf.x <= abs(ts)),'ty'] = 0
                 cl = 1-alpha
             if tail_choice == "Right Tail":
                 pvalue = 1-scipy.stats.t.cdf(ts,df)
                 cv = scipy.stats.t.ppf(1-alpha,df)
-                tdf["Right"] = np.where(tdf["x"]>=ts,tdf["ty"],0)
-                tplot = tplot + geom_col(aes(x=x,y="Right"), fill = "steelblue", size = .1, alpha = .4)
+                tdf.loc[(tdf.x <= ts),'ty'] = 0
                 cl=1-2*alpha
             me = cv*sem
             data = pd.DataFrame({"df":df,"x-bar-d":xbard,"sem":sem,"CV t*":cv,"ME":abs(me),"t-Score":ts,"p-Value":pvalue},index = [0]).T 
             st.write(data) 
         with d3:
-            tplot = tplot + geom_segment(aes(x = ts, y = 0, xend = ts, yend = scipy.stats.t.pdf(ts,df)),color="red")
-            tplot = tplot + geom_line(aes(x=x,y=ty)) + xlab('t') + ylab('')
-            st.pyplot(ggplot.draw(tplot))
+            fig.add_trace(px.area(tdf, x = 'x', y = 'ty', template= 'simple_white').data[0])
+            st.plotly_chart(fig, use_container_width=True)  
             lower = xbard - abs(me)
             upper = xbard + abs(me) 
             st.write(str(100*cl) + "'%' confidence interval is (" + str(lower) +", "+str(upper)+")")   

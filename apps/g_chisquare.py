@@ -1,9 +1,10 @@
-from typing import ClassVar
+
 import streamlit as st
 import pandas as pd
 import scipy as sp
 import numpy as np
-from plotnine import *
+import plotly_express as px
+
 
 def app():
     # title of the app
@@ -51,17 +52,14 @@ def app():
             data = pd.DataFrame({"Chi-Square Test Statistic":tcs,"Critical Value":cv,"Degrees of Freedom":dof,"p-Value":p},index = [0]).T 
             st.write(data)
             maxchi = max(cv,tcs)
-            x = np.arange(0,maxchi+2,.1)
+            x = np.arange(0,maxchi*1.5,.1)
             chiy = sp.stats.chi2.pdf(x,dof)
             chidf = pd.DataFrame({"x":x,"chiy":chiy})
-            chiplot = ggplot(chidf) + coord_fixed(ratio = 2*maxchi)
-            chidf["Right"] = np.where(chidf["x"]>=tcs,chidf["chiy"],0)
-            chidf['alpha'] = np.where(chidf["x"]>=cv,chidf["chiy"],0)
-            chiplot = chiplot + geom_col(aes(x=x,y="Right"), fill = "steelblue", size = .1, alpha = .4)
-            chiplot = chiplot + geom_col(aes(x=x,y="alpha"), fill = "red", size = .1, alpha = .4)
-            chiplot = chiplot + geom_segment(aes(x = tcs, y = 0, xend = tcs, yend = sp.stats.t.pdf(tcs,dof)),color="red")
-            chiplot = chiplot + geom_line(aes(x=x,y=chiy))
-            st.pyplot(ggplot.draw(chiplot))
+            fig = px.line(chidf, x = 'x', y = 'chiy', template= 'simple_white')
+            chidf.loc[(chidf.x <= tcs),'chiy'] = 0
+            fig.add_trace(px.area(chidf, x = 'x', y = 'chiy', template= 'simple_white').data[0])
+            st.plotly_chart(fig, use_container_width=True)  
+            
             
     if t_choice == "Goodness of Fit":
         c1,c2 = st.columns(2)
@@ -93,14 +91,12 @@ def app():
             cv = sp.stats.chi2.ppf(1-alpha,dof)
             data = pd.DataFrame({"Chi-Square Test Statistic":tcs,"Critical Value":cv,"Degrees of Freedom":dof,"p-Value":p},index = [0]).T 
             st.write(data)
-            x = np.arange(0,cv+2,.1)
+            maxchi = max(cv,tcs)
+            x = np.arange(0,maxchi*1.5,.1)
             chiy = sp.stats.chi2.pdf(x,dof)
             chidf = pd.DataFrame({"x":x,"chiy":chiy})
-            chiplot = ggplot(chidf) + coord_fixed(ratio = cv)
-            chidf["Right"] = np.where(chidf["x"]>=tcs,chidf["chiy"],0)
-            chidf['alpha'] = np.where(chidf["x"]>=cv,chidf["chiy"],0)
-            chiplot = chiplot + geom_col(aes(x=x,y="Right"), fill = "steelblue", size = .1, alpha = .4)
-            chiplot = chiplot + geom_col(aes(x=x,y="alpha"), fill = "red", size = .1, alpha = .4)
-            chiplot = chiplot + geom_segment(aes(x = tcs, y = 0, xend = tcs, yend = sp.stats.t.pdf(tcs,dof)),color="red")
-            chiplot = chiplot + geom_line(aes(x=x,y=chiy)) + xlab('chi') + ylab('')
-            st.pyplot(ggplot.draw(chiplot))
+            fig = px.line(chidf, x = 'x', y = 'chiy', template= 'simple_white')
+            chidf.loc[(chidf.x <= tcs),'chiy'] = 0
+            fig.add_trace(px.area(chidf, x = 'x', y = 'chiy', template= 'simple_white').data[0])
+            st.plotly_chart(fig, use_container_width=True) 
+            
