@@ -28,38 +28,40 @@ def app():
             p_hat = x/n
             tsd = math.sqrt(nullp*(1-nullp)/n)
             cise = math.sqrt(p_hat*(1-p_hat)/n)
-            z = (p_hat - nullp)/tsd
-            x = np.arange(-4,4,.01)
-            y = norm.pdf(x)
-            ndf = pd.DataFrame({"x":x,"y":y})
-            fig = px.line(ndf, x = 'x', y = 'y', template= 'simple_white')
+            zscore = (p_hat - nullp)/tsd
+            z = np.arange(-4,4,.01)
+            y = norm.pdf(z)
+            ndf = pd.DataFrame({"z":z,"y":y})
+            fig = px.line(ndf, x = 'z', y = 'y', template= 'simple_white')
             
             if tail_choice == "Left Tail":
-                pv = norm.cdf(z)
+                pv = norm.cdf(zscore)
                 cz = norm.ppf(alpha)
                 rcz = cz
                 cl = 1 - 2*alpha
-                ndf.loc[(ndf.x >= z),'y'] = 0
+                ndf.loc[(ndf.z >= zscore),'y'] = 0
                 
             if tail_choice == "Two Tails":
-                pv = 2*(1-norm.cdf(abs(z)))
+                pv = 2*(1-norm.cdf(abs(zscore)))
                 cz = abs(norm.ppf(alpha/2))
                 rcz = "±" + str(abs(norm.ppf(alpha/2)))
                 cl = 1 - alpha
-                ndf.loc[(ndf.x >= -abs(z)) & (ndf.x <= abs(z)),'y'] = 0
+                ndf.loc[(ndf.z >= -abs(zscore)) & (ndf.z <= abs(zscore)),'y'] = 0
                 
             if tail_choice == "Right Tail":
-                pv = 1 - norm.cdf(z)
+                pv = 1 - norm.cdf(zscore)
                 cz = -1 * norm.ppf(alpha)
                 rcz = cz
                 cl = 1 - 2*alpha
-                ndf.loc[(ndf.x <= z),'y'] = 0
-            fig.add_trace(px.area(ndf, x = 'x', y = 'y', template= 'simple_white').data[0])
+                ndf.loc[(ndf.z <= zscore),'y'] = 0
+            fig.add_trace(px.area(ndf, x = 'z', y = 'y', template= 'simple_white').data[0])
                 
             st.plotly_chart(fig, use_container_width=True)      
+            
             me = cz * cise
             rme = "±" + str(abs(me))
-            data = pd.DataFrame({"p-Hat":p_hat,"z-Score":z,"p-Value":pv,"CV z*":rcz,"Test SD":tsd,"C-Level":cl,"CI SE":cise,"ME":rme},index = [0])  
+            
+            data = pd.DataFrame({"p-Hat":p_hat,"z-Score":zscore,"p-Value":pv,"CV z*":rcz,"Test SD":tsd,"C-Level":cl,"CI SE":cise,"ME":rme},index = [0])  
             st.write(data)
             
             lower = p_hat - abs(me)
@@ -91,41 +93,41 @@ def app():
             pq_hat = 1-pp_hat
             tsd = math.sqrt(pp_hat*pq_hat*(1/n1+1/n2))
             cise = math.sqrt(p_hat1*q_hat1/n1+p_hat2*q_hat2/n2)
-            z = (p_hat1 - p_hat2)/tsd
+            zscore = (p_hat1 - p_hat2)/tsd
             
-            x = np.arange(-4,4,.01)
-            y = norm.pdf(x)
-            ndf = pd.DataFrame({"x":x,"y":y})
-            fig = px.line(ndf, x = 'x', y = 'y', template= 'simple_white')
+            z = np.arange(-4,4,.01)
+            y = norm.pdf(z)
+            ndf = pd.DataFrame({"z":z,"y":y})
+            fig = px.line(ndf, x = 'z', y = 'y', template= 'simple_white')
             
             if tail_choice == "Left Tail":
-                pv = norm.cdf(z)
+                pv = norm.cdf(zscore)
                 cz = norm.ppf(alpha)
                 rcz = cz
                 cl = 1 - 2*alpha
-                ndf.loc[(ndf.x >= z),'y'] = 0
+                ndf.loc[(ndf.z >= zscore),'y'] = 0
                 
             if tail_choice == "Two Tails":
-                pv = 2*(1-norm.cdf(abs(z)))
+                pv = 2*(1-norm.cdf(abs(zscore)))
                 cz = abs(norm.ppf(alpha/2))
                 rcz = "±" + str(abs(norm.ppf(alpha/2)))
                 cl = 1 - alpha
-                ndf.loc[(ndf.x >= -abs(z)) & (ndf.x <= abs(z)),'y'] = 0
+                ndf.loc[(ndf.z >= -abs(zscore)) & (ndf.z <= abs(zscore)),'y'] = 0
                 
             if tail_choice == "Right Tail":
-                pv = 1 - norm.cdf(z)
+                pv = 1 - norm.cdf(zscore)
                 cz = -1 * norm.ppf(alpha)
                 rcz = cz
                 cl = 1 - 2*alpha
-                ndf.loc[(ndf.x <= z),'y'] = 0
+                ndf.loc[(ndf.z <= zscore),'y'] = 0
             
-            fig.add_trace(px.area(ndf, x = 'x', y = 'y', template= 'simple_white').data[0])
+            fig.add_trace(px.area(ndf, x = 'z', y = 'y', template= 'simple_white').data[0])
                 
             st.plotly_chart(fig, use_container_width=True)   
                 
             me = cz * cise
             rme = "±" + str(abs(me))
-            data = pd.DataFrame({"p-Hat 1":p_hat1,"p-Hat 2":p_hat2,"Pooled p-Hat":pp_hat,"Diff p-Hat":dp_hat,"z-Score":z,"p-Value":pv,"CV z*":rcz,"Test SD":tsd,"C-Level":cl,"CI SE":cise,"ME":rme},index = [0])  
+            data = pd.DataFrame({"p-Hat 1":p_hat1,"p-Hat 2":p_hat2,"Pooled p-Hat":pp_hat,"Diff p-Hat":dp_hat,"z-Score":zscore,"p-Value":pv,"CV z*":rcz,"Test SD":tsd,"C-Level":cl,"CI SE":cise,"ME":rme},index = [0])  
             st.write(data)
             
             lower = dp_hat - abs(me)

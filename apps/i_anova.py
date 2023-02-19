@@ -67,14 +67,14 @@ def app():
             cv = sp.stats.f.ppf(1-alpha,bdf,wdf) 
             st.markdown("F Critical Value: "+ str(cv))
             maxF = max(aF,cv)
-            x = np.arange(0,maxF*1.1,.01)
+            F = np.arange(0,maxF*1.1,.01)
             
-            Fy = sp.stats.f.pdf(x,bdf,wdf)
-            Fdf = pd.DataFrame({"x":x,"Fy":Fy})
+            Fy = sp.stats.f.pdf(F,bdf,wdf)
+            Fdf = pd.DataFrame({"F":F,"Fy":Fy})
             
-            fig = px.line(Fdf, x = 'x', y = 'Fy', template= 'simple_white')
-            Fdf.loc[(Fdf.x <= aF),'Fy'] = 0
-            fig.add_trace(px.area(Fdf, x = 'x', y = 'Fy', template= 'simple_white').data[0])
+            fig = px.line(Fdf, x = 'F', y = 'Fy', template= 'simple_white')
+            Fdf.loc[(Fdf.F <= aF),'Fy'] = 0
+            fig.add_trace(px.area(Fdf, x = 'F', y = 'Fy', template= 'simple_white').data[0])
             st.plotly_chart(fig, use_container_width=True) 
             
             
@@ -129,13 +129,13 @@ def app():
             cv = sp.stats.f.ppf(1-alpha,bdf,wdf) 
             st.markdown("F Critical Value: "+ str(cv))
             maxF = max(aF,cv)
-            x = np.arange(0,maxF*1.1,maxF/1000)
-            Fy = sp.stats.f.pdf(x,bdf,wdf)
-            Fdf = pd.DataFrame({"x":x,"Fy":Fy})
+            F = np.arange(0,maxF*1.1,maxF/1000)
+            Fy = sp.stats.f.pdf(F,bdf,wdf)
+            Fdf = pd.DataFrame({"F":F,"Fy":Fy})
             
-            fig = px.line(Fdf, x = 'x', y = 'Fy', template= 'simple_white')
-            Fdf.loc[(Fdf.x <= aF),'Fy'] = 0
-            fig.add_trace(px.area(Fdf, x = 'x', y = 'Fy', template= 'simple_white').data[0])
+            fig = px.line(Fdf, x = 'F', y = 'Fy', template= 'simple_white')
+            Fdf.loc[(Fdf.F <= aF),'Fy'] = 0
+            fig.add_trace(px.area(Fdf, x = 'F', y = 'Fy', template= 'simple_white').data[0])
             st.plotly_chart(fig, use_container_width=True) 
                 
     

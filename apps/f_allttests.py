@@ -77,16 +77,16 @@ def app():
             s = qstat.iloc[2,0]
             sem = s/math.sqrt(n)
             ts = (xbar - nh)/sem
-            x = np.arange(-5,5,.01)
-            ty = scipy.stats.t.pdf(x,df)
-            tdf = pd.DataFrame({"x":x,"ty":ty})
-            fig = px.line(tdf, x = 'x', y = 'ty', template= 'simple_white') 
+            t = np.arange(-5,5,.01)
+            ty = scipy.stats.t.pdf(t,df)
+            tdf = pd.DataFrame({"t":t,"ty":ty})
+            fig = px.line(tdf, x = 't', y = 'ty', template= 'simple_white') 
 
             
             if tail_choice == "Left Tail":
                 pvalue = scipy.stats.t.cdf(ts,df)
                 cv = scipy.stats.t.ppf(alpha,df)
-                tdf.loc[(tdf.x >= ts),'ty'] = 0
+                tdf.loc[(tdf.t >= ts),'ty'] = 0
                 
                 cl = 1 - 2*alpha
             if tail_choice == "Two Tails":
@@ -95,20 +95,20 @@ def app():
                 pvalue = 2*scipy.stats.t.cdf(lts,df)
                 cv = scipy.stats.t.ppf(alpha/2,df)
                 cv = abs(cv)
-                tdf.loc[(tdf.x >= -abs(ts)) & (tdf.x <= abs(ts)),'ty'] = 0
+                tdf.loc[(tdf.t >= -abs(ts)) & (tdf.t <= abs(ts)),'ty'] = 0
                 
                 cl = 1-alpha
             if tail_choice == "Right Tail":
                 pvalue = 1-scipy.stats.t.cdf(ts,df)
                 cv = scipy.stats.t.ppf(1-alpha,df)
-                tdf.loc[(tdf.x <= ts),'ty'] = 0
+                tdf.loc[(tdf.t <= ts),'ty'] = 0
                 
                 cl=1-2*alpha
             me = cv*sem
             data = pd.DataFrame({"n":n,"df":df,"x-bar":xbar,"s":s,"sem":sem,"CV t*":cv,"ME":me,"t-Score":ts,"p-Value":pvalue},index = [0]).T 
             st.write(data) 
         with d3:
-            fig.add_trace(px.area(tdf, x = 'x', y = 'ty', template= 'simple_white').data[0])
+            fig.add_trace(px.area(tdf, x = 't', y = 'ty', template= 'simple_white').data[0])
             st.plotly_chart(fig, use_container_width=True)  
             lower = xbar - abs(me)
             upper = xbar + abs(me) 
@@ -133,15 +133,15 @@ def app():
             df = n-1
             sem = s/math.sqrt(n)
             ts = (xbar - nh)/sem
-            x = np.arange(-5,5,.01)
-            ty = scipy.stats.t.pdf(x,df)
-            tdf = pd.DataFrame({"x":x,"ty":ty})
-            fig = px.line(tdf, x = 'x', y = 'ty', template= 'simple_white') 
+            t = np.arange(-5,5,.01)
+            ty = scipy.stats.t.pdf(t,df)
+            tdf = pd.DataFrame({"t":t,"ty":ty})
+            fig = px.line(tdf, x = 't', y = 'ty', template= 'simple_white') 
             
             if tail_choice == "Left Tail":
                 pvalue = scipy.stats.t.cdf(ts,df)
                 cv = scipy.stats.t.ppf(alpha,df)
-                tdf.loc[(tdf.x >= ts),'ty'] = 0
+                tdf.loc[(tdf.t >= ts),'ty'] = 0
                 cl = 1 - 2*alpha
             if tail_choice == "Two Tails":
                 rts = abs(ts)
@@ -149,18 +149,18 @@ def app():
                 pvalue = 2*scipy.stats.t.cdf(lts,df)
                 cv = scipy.stats.t.ppf(alpha/2,df)
                 cv = abs(cv)
-                tdf.loc[(tdf.x >= -abs(ts)) & (tdf.x <= abs(ts)),'ty'] = 0
+                tdf.loc[(tdf.t >= -abs(ts)) & (tdf.t <= abs(ts)),'ty'] = 0
                 cl = 1-alpha
             if tail_choice == "Right Tail":
                 pvalue = 1-scipy.stats.t.cdf(ts,df)
                 cv = scipy.stats.t.ppf(1-alpha,df)
-                tdf.loc[(tdf.x <= ts),'ty'] = 0
+                tdf.loc[(tdf.t <= ts),'ty'] = 0
                 cl=1-2*alpha
             me = cv*sem
             data = pd.DataFrame({"n":n,"df":df,"x-bar":xbar,"s":s,"sem":sem,"CV t*":cv,"ME":me,"t-Score":ts,"p-Value":pvalue},index = [0]).T 
             st.write(data) 
         with d3:
-            fig.add_trace(px.area(tdf, x = 'x', y = 'ty', template= 'simple_white').data[0])
+            fig.add_trace(px.area(tdf, x = 't', y = 'ty', template= 'simple_white').data[0])
             st.plotly_chart(fig, use_container_width=True) 
             
             lower = xbar - abs(me)
@@ -234,15 +234,15 @@ def app():
             s = stats.stdev(fsdf[quant])
             sem = s/math.sqrt(n)
             ts = (xbar - nh)/sem
-            x = np.arange(-5,5,.01)
-            ty = scipy.stats.t.pdf(x,df)
-            tdf = pd.DataFrame({"x":x,"ty":ty})
-            fig = px.line(tdf, x = 'x', y = 'ty', template= 'simple_white') 
+            t = np.arange(-5,5,.01)
+            ty = scipy.stats.t.pdf(t,df)
+            tdf = pd.DataFrame({"t":t,"ty":ty})
+            fig = px.line(tdf, x = 't', y = 'ty', template= 'simple_white') 
             
             if tail_choice == "Left Tail":
                 pvalue = scipy.stats.t.cdf(ts,df)
                 cv = scipy.stats.t.ppf(alpha,df)
-                tdf.loc[(tdf.x >= ts),'ty'] = 0
+                tdf.loc[(tdf.t >= ts),'ty'] = 0
                 cl = 1 - 2*alpha
             if tail_choice == "Two Tails":
                 rts = abs(ts)
@@ -250,18 +250,18 @@ def app():
                 pvalue = 2*scipy.stats.t.cdf(lts,df)
                 cv = scipy.stats.t.ppf(alpha/2,df)
                 cv = abs(cv)
-                tdf.loc[(tdf.x >= -abs(ts)) & (tdf.x <= abs(ts)),'ty'] = 0
+                tdf.loc[(tdf.t >= -abs(ts)) & (tdf.x <= abs(ts)),'ty'] = 0
                 cl = 1-alpha
             if tail_choice == "Right Tail":
                 pvalue = 1-scipy.stats.t.cdf(ts,df)
                 cv = scipy.stats.t.ppf(1-alpha,df)
-                tdf.loc[(tdf.x <= ts),'ty'] = 0
+                tdf.loc[(tdf.t <= ts),'ty'] = 0
                 cl=1-2*alpha
             me = cv*sem
             data = pd.DataFrame({"n":n,"df":df,"x-bar":xbar,"s":s,"sem":sem,"CV t*":cv,"ME":me,"t-Score":ts,"p-Value":pvalue},index = [0]).T 
             st.write(data) 
         with d3:
-            fig.add_trace(px.area(tdf, x = 'x', y = 'ty', template= 'simple_white').data[0])
+            fig.add_trace(px.area(tdf, x = 't', y = 'ty', template= 'simple_white').data[0])
             st.plotly_chart(fig, use_container_width=True)  
             lower = xbar - abs(me)
             upper = xbar + abs(me) 
@@ -355,15 +355,15 @@ def app():
                 ts = (xbard-nh)/sem
                 
                 #st.write(ts,df,sem)
-                x = np.arange(-5,5,.01)
-                ty = scipy.stats.t.pdf(x,df)
-                tdf = pd.DataFrame({"x":x,"ty":ty})
-                fig = px.line(tdf, x = 'x', y = 'ty', template= 'simple_white') 
+                t = np.arange(-5,5,.01)
+                ty = scipy.stats.t.pdf(t,df)
+                tdf = pd.DataFrame({"t":t,"ty":ty})
+                fig = px.line(tdf, x = 't', y = 'ty', template= 'simple_white') 
                 
                 if tail_choice == "Left Tail":
                     pvalue = scipy.stats.t.cdf(ts,df)
                     cv = scipy.stats.t.ppf(alpha,df)
-                    tdf.loc[(tdf.x >= ts),'ty'] = 0
+                    tdf.loc[(tdf.t >= ts),'ty'] = 0
                     cl = 1 - 2*alpha
                 if tail_choice == "Two Tails":
                     rts = abs(ts)
@@ -371,18 +371,18 @@ def app():
                     pvalue = 2*scipy.stats.t.cdf(lts,df)
                     cv = scipy.stats.t.ppf(alpha/2,df)
                     cv = abs(cv)
-                    tdf.loc[(tdf.x >= -abs(ts)) & (tdf.x <= abs(ts)),'ty'] = 0
+                    tdf.loc[(tdf.t >= -abs(ts)) & (tdf.t <= abs(ts)),'ty'] = 0
                     cl = 1-alpha
                 if tail_choice == "Right Tail":
                     pvalue = 1-scipy.stats.t.cdf(ts,df)
                     cv = scipy.stats.t.ppf(1-alpha,df)
-                    tdf.loc[(tdf.x <= ts),'ty'] = 0
+                    tdf.loc[(tdf.t <= ts),'ty'] = 0
                     cl=1-2*alpha
                 me = cv*sem
                 data = pd.DataFrame({"df":df,"x-bar-d":xbard,"sem":sem,"CV t*":cv,"ME":abs(me),"t-Score":ts,"p-Value":pvalue},index = [0]).T 
                 st.write(data) 
             with d3:
-                fig.add_trace(px.area(tdf, x = 'x', y = 'ty', template= 'simple_white').data[0])
+                fig.add_trace(px.area(tdf, x = 't', y = 'ty', template= 'simple_white').data[0])
                 st.plotly_chart(fig, use_container_width=True)  
                 lower = xbard - abs(me)
                 upper = xbard + abs(me) 
@@ -423,14 +423,14 @@ def app():
             ts = (xbard-nh)/sem
             
             #st.write(ts,df,sem)
-            x = np.arange(-5,5,.01)
-            ty = scipy.stats.t.pdf(x,df)
-            tdf = pd.DataFrame({"x":x,"ty":ty})
-            fig = px.line(tdf, x = 'x', y = 'ty', template= 'simple_white')
+            t = np.arange(-5,5,.01)
+            ty = scipy.stats.t.pdf(t,df)
+            tdf = pd.DataFrame({"t":t,"ty":ty})
+            fig = px.line(tdf, x = 't', y = 'ty', template= 'simple_white')
             if tail_choice == "Left Tail":
                 pvalue = scipy.stats.t.cdf(ts,df)
                 cv = scipy.stats.t.ppf(alpha,df)
-                tdf.loc[(tdf.x >= ts),'ty'] = 0
+                tdf.loc[(tdf.t >= ts),'ty'] = 0
                 cl = 1 - 2*alpha
             if tail_choice == "Two Tails":
                 rts = abs(ts)
@@ -438,18 +438,18 @@ def app():
                 pvalue = 2*scipy.stats.t.cdf(lts,df)
                 cv = scipy.stats.t.ppf(alpha/2,df)
                 cv = abs(cv)
-                tdf.loc[(tdf.x >= -abs(ts)) & (tdf.x <= abs(ts)),'ty'] = 0
+                tdf.loc[(tdf.t >= -abs(ts)) & (tdf.t <= abs(ts)),'ty'] = 0
                 cl = 1-alpha
             if tail_choice == "Right Tail":
                 pvalue = 1-scipy.stats.t.cdf(ts,df)
                 cv = scipy.stats.t.ppf(1-alpha,df)
-                tdf.loc[(tdf.x <= ts),'ty'] = 0
+                tdf.loc[(tdf.t <= ts),'ty'] = 0
                 cl=1-2*alpha
             me = cv*sem
             data = pd.DataFrame({"df":df,"x-bar-d":xbard,"sem":sem,"CV t*":cv,"ME":abs(me),"t-Score":ts,"p-Value":pvalue},index = [0]).T 
             st.write(data) 
         with d3:
-            fig.add_trace(px.area(tdf, x = 'x', y = 'ty', template= 'simple_white').data[0])
+            fig.add_trace(px.area(tdf, x = 't', y = 'ty', template= 'simple_white').data[0])
             st.plotly_chart(fig, use_container_width=True)  
             lower = xbard - abs(me)
             upper = xbard + abs(me) 

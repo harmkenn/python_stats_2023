@@ -27,8 +27,8 @@ def app():
                 df = df.dropna(axis=1, how="all")  
             df = pd.read_csv(URL)
             df = df.dropna(axis=1, how="all")
-            with bottom[0]:
-                st.dataframe(df)
+            st.dataframe(df)
+                           
             global numeric_columns
             global non_numeric_columns
             try:
@@ -53,8 +53,7 @@ def app():
             with top[2]:
                 fig = px.bar(df, x = 'X', y = 'Prob(X)', facet_row='Type', template= 'simple_white')
                 st.plotly_chart(fig, use_container_width=True)
-            with bottom[1]:
-                st.write(data)
+            
     
     
     if prob_choice == "Binomial Probability":

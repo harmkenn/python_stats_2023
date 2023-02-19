@@ -28,26 +28,26 @@ def app():
         g1,g2 = st.columns((1,3))
         
         with g2:
-            x = np.arange(-4,4,.01)
-            y = norm.pdf(x)
-            ndf = pd.DataFrame({"x":x,"y":y})
-            fig = px.line(ndf, x = 'x', y = 'y', template= 'simple_white')
+            z = np.arange(-4,4,.01)
+            y = norm.pdf(z)
+            ndf = pd.DataFrame({"z":z,"y":y})
+            fig = px.line(ndf, x = 'z', y = 'y', template= 'simple_white')
             tp = 1
             
 
             if ls == 0:
                 tp = tp - norm.cdf(lzp)
-                ndf.loc[(ndf.x <= lzp),'y'] = 0
+                ndf.loc[(ndf.z <= lzp),'y'] = 0
         
             if zpc == 0:
                 tp = tp - (norm.cdf(rzp) - norm.cdf(lzp))
-                ndf.loc[(ndf.x >= lzp) & (ndf.x <= rzp),'y'] = 0 
+                ndf.loc[(ndf.z >= lzp) & (ndf.x <= rzp),'y'] = 0 
                 
             if rs == 0:
                 tp = tp - (1 - norm.cdf(rzp))
-                ndf.loc[(ndf.x >= rzp),'y'] = 0
+                ndf.loc[(ndf.z >= rzp),'y'] = 0
             
-            fig.add_trace(px.area(ndf, x = 'x', y = 'y', template= 'simple_white').data[0])
+            fig.add_trace(px.area(ndf, x = 'z', y = 'y', template= 'simple_white').data[0])
                 
             st.plotly_chart(fig, use_container_width=True)    
             
@@ -66,23 +66,23 @@ def app():
         
         g1,g2 = st.columns((1,3))
         with g2:
-            x = np.arange(-4,4,.01)
-            y = norm.pdf(x)
-            ndf = pd.DataFrame({"x":x,"y":y})
-            fig = px.line(ndf, x = 'x', y = 'y', template= 'simple_white')
+            z = np.arange(-4,4,.01)
+            y = norm.pdf(z)
+            ndf = pd.DataFrame({"z":z,"y":y})
+            fig = px.line(ndf, x = 'z', y = 'y', template= 'simple_white')
 
             if shade == "Left":
                 z = norm.ppf(sp/100)
-                ndf.loc[(ndf.x >= z),'y'] = 0
+                ndf.loc[(ndf.z >= z),'y'] = 0
                                 
             if shade == "Center":
                 z = norm.ppf(((100-sp)/2)/100)
-                ndf.loc[(ndf.x <= z) | (ndf.x >= -z),'y'] = 0
+                ndf.loc[(ndf.z <= z) | (ndf.x >= -z),'y'] = 0
                                 
             if shade == "Right":
                 z = norm.ppf((100-sp)/100)
-                ndf.loc[(ndf.x <= z),'y'] = 0
-            fig.add_trace(px.area(ndf, x = 'x', y = 'y', template= 'simple_white').data[0])
+                ndf.loc[(ndf.z <= z),'y'] = 0
+            fig.add_trace(px.area(ndf, x = 'z', y = 'y', template= 'simple_white').data[0])
             st.plotly_chart(fig, use_container_width=True) 
               
         with g1:

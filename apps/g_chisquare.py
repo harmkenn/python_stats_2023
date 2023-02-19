@@ -52,12 +52,12 @@ def app():
             data = pd.DataFrame({"Chi-Square Test Statistic":tcs,"Critical Value":cv,"Degrees of Freedom":dof,"p-Value":p},index = [0]).T 
             st.write(data)
             maxchi = max(cv,tcs)
-            x = np.arange(0,maxchi*1.5,.1)
-            chiy = sp.stats.chi2.pdf(x,dof)
-            chidf = pd.DataFrame({"x":x,"chiy":chiy})
-            fig = px.line(chidf, x = 'x', y = 'chiy', template= 'simple_white')
-            chidf.loc[(chidf.x <= tcs),'chiy'] = 0
-            fig.add_trace(px.area(chidf, x = 'x', y = 'chiy', template= 'simple_white').data[0])
+            chi = np.arange(0,maxchi*1.5,.1)
+            chiy = sp.stats.chi2.pdf(chi,dof)
+            chidf = pd.DataFrame({"chi":chi,"chiy":chiy})
+            fig = px.line(chidf, x = 'chi', y = 'chiy', template= 'simple_white')
+            chidf.loc[(chidf.chi <= tcs),'chiy'] = 0
+            fig.add_trace(px.area(chidf, x = 'chi', y = 'chiy', template= 'simple_white').data[0])
             st.plotly_chart(fig, use_container_width=True)  
             
             
@@ -92,11 +92,11 @@ def app():
             data = pd.DataFrame({"Chi-Square Test Statistic":tcs,"Critical Value":cv,"Degrees of Freedom":dof,"p-Value":p},index = [0]).T 
             st.write(data)
             maxchi = max(cv,tcs)
-            x = np.arange(0,maxchi*1.5,.1)
-            chiy = sp.stats.chi2.pdf(x,dof)
-            chidf = pd.DataFrame({"x":x,"chiy":chiy})
-            fig = px.line(chidf, x = 'x', y = 'chiy', template= 'simple_white')
-            chidf.loc[(chidf.x <= tcs),'chiy'] = 0
-            fig.add_trace(px.area(chidf, x = 'x', y = 'chiy', template= 'simple_white').data[0])
+            chi = np.arange(0,maxchi*1.5,.1)
+            chiy = sp.stats.chi2.pdf(chi,dof)
+            chidf = pd.DataFrame({"chi":chi,"chiy":chiy})
+            fig = px.line(chidf, x = 'chi', y = 'chiy', template= 'simple_white')
+            chidf.loc[(chidf.chi <= tcs),'chiy'] = 0
+            fig.add_trace(px.area(chidf, x = 'chi', y = 'chiy', template= 'simple_white').data[0])
             st.plotly_chart(fig, use_container_width=True) 
             
