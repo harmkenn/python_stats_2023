@@ -77,7 +77,7 @@ def app():
                                 
             if shade == "Center":
                 z = norm.ppf(((100-sp)/2)/100)
-                ndf.loc[(ndf.z <= z) | (ndf.x >= -z),'y'] = 0
+                ndf.loc[(ndf.z <= z) | (ndf.z >= -z),'y'] = 0
                                 
             if shade == "Right":
                 z = norm.ppf((100-sp)/100)
