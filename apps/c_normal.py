@@ -41,7 +41,7 @@ def app():
         
             if zpc == 0:
                 tp = tp - (norm.cdf(rzp) - norm.cdf(lzp))
-                ndf.loc[(ndf.z >= lzp) & (ndf.x <= rzp),'y'] = 0 
+                ndf.loc[(ndf.z >= lzp) & (ndf.z <= rzp),'y'] = 0 
                 
             if rs == 0:
                 tp = tp - (1 - norm.cdf(rzp))
