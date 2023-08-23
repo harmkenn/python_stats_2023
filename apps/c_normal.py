@@ -86,7 +86,7 @@ def app():
             st.plotly_chart(fig, use_container_width=True) 
               
         with g1:
-            st.markdown(f"z-Score: {z}")
+            st.markdown(f"z-Score: {z}") 
             
     # store variables
 
