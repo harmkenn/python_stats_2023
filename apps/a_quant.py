@@ -1,7 +1,10 @@
 import streamlit as st
 import plotly_express as px
 import pandas as pd
+import numpy as np
 import statsmodels.api as sm
+import matplotlib.pyplot as plt
+import pingouin as pg
 
 def app():
     # title of the app
@@ -73,16 +76,20 @@ def app():
             with top[1]:
                 cat1 = st.selectbox('Category',options=allcat) 
             ny = df[df[cv]==cat1][y]
-            zy = (ny-ny.mean())/ny.std()
-            fig = sm.qqplot(zy, line='45')
-            
+
         else:
-            zy = (df[y]-df[y].mean())/df[y].std()
-            fig = sm.qqplot(zy, line='45')
-            
-        
+            ny = df[y]
+ 
         with top[1]:
-            st.plotly_chart(fig, use_container_width=True)    
+            # Create a QQ-plot with confidence interval bands
+            fig, ax = plt.subplots()
+            ax = pg.qqplot(ny, dist='norm', confidence=.95)
+
+            # Add labels and title
+            ax.set_xlabel('Theoretical Quantiles')
+            ax.set_ylabel('Sample Quantiles')
+            ax.set_title('QQ-Plot with Confidence Interval Bands')
+            st.pyplot(fig, use_container_width=True)    
             
     if chart_choice == "Scatterplot":
         with top[1]:
