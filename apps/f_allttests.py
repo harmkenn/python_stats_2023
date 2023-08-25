@@ -70,9 +70,7 @@ def app():
             ax.set_ylabel('Sample Quantiles')
             ax.set_title('QQ-Plot with Confidence Interval Bands')
             st.pyplot(fig, use_container_width=True)   
-            #zy = (fsdf[quant]-fsdf[quant].mean())/fsdf[quant].std()
-            #fig = sm.qqplot(zy, line='45')
-            #st.plotly_chart(fig, use_container_width=True) 
+
             ddd = shapiro(fsdf[quant])[1]
             st.write("Shapiro p-Value: " + str(ddd))
         
@@ -218,17 +216,24 @@ def app():
                 st.markdown(f"Quantity: {quant}")
                 st.markdown(f"Category: {cat}")   
                 st.markdown(f"Variable: {cat1}")  
-                st.dataframe(fsdf.describe())
+                
             if cat == None:
                 fsdf = df[quant]
                 st.markdown(f"Quantity: {quant}")
                 st.markdown(f"Category: {cat}")  
-                st.write(pd.DataFrame(fsdf.describe()))
+            st.write(pd.DataFrame(fsdf.describe()))
             fsdf=pd.DataFrame(fsdf)
         with c3:
-            zy = (fsdf[quant]-fsdf[quant].mean())/fsdf[quant].std()
-            fig = sm.qqplot(zy, line='45')
-            st.plotly_chart(fig, use_container_width=True) 
+            # Create a QQ-plot with confidence interval bands
+            fig, ax = plt.subplots()
+            ax = pg.qqplot(fsdf[quant], dist='norm', confidence=.95)
+
+            # Add labels and title
+            ax.set_xlabel('Theoretical Quantiles')
+            ax.set_ylabel('Sample Quantiles')
+            ax.set_title('QQ-Plot with Confidence Interval Bands')
+            st.pyplot(fig, use_container_width=True) 
+             
             ddd = shapiro(fsdf[quant])[1]
             st.write("Shapiro p-Value: " + str(ddd))
         
@@ -323,17 +328,30 @@ def app():
                 
             with c3:
                 gp1 = fsdf[fsdf[cat]==g1][quant]
-                zy = (gp1-gp1.mean())/gp1.std()
-                fig = sm.qqplot(zy, line='45')
-                st.plotly_chart(fig, use_container_width=True) 
+                # Create a QQ-plot with confidence interval bands
+                fig, ax = plt.subplots()
+                ax = pg.qqplot(gp1, dist='norm', confidence=.95)
+
+                # Add labels and title
+                ax.set_xlabel('Theoretical Quantiles')
+                ax.set_ylabel('Sample Quantiles')
+                ax.set_title('QQ-Plot with Confidence Interval Bands')
+                st.pyplot(fig, use_container_width=True) 
+                
                 shap1 = scipy.stats.shapiro(gp1)
                 st.write("Shapiro p-Value: " + str(shap1[1]))
                 
             
                 gp2 = fsdf[fsdf[cat]==g2][quant]
-                zy = (gp2-gp2.mean())/gp2.std()
-                fig = sm.qqplot(zy, line='45')
-                st.plotly_chart(fig, use_container_width=True) 
+                # Create a QQ-plot with confidence interval bands
+                fig, ax = plt.subplots()
+                ax = pg.qqplot(gp2, dist='norm', confidence=.95)
+
+                # Add labels and title
+                ax.set_xlabel('Theoretical Quantiles')
+                ax.set_ylabel('Sample Quantiles')
+                ax.set_title('QQ-Plot with Confidence Interval Bands')
+                st.pyplot(fig, use_container_width=True) 
                 shap2 = scipy.stats.shapiro(gp2)
                 st.write("Shapiro p-Value: " + str(shap2[1]))
             
