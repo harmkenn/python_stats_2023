@@ -41,7 +41,7 @@ def app():
         
             if zpc == 0:
                 tp = tp - (norm.cdf(rzp) - norm.cdf(lzp))
-                ndf.loc[(ndf.z >= lzp) & (ndf.x <= rzp),'y'] = 0 
+                ndf.loc[(ndf.z >= lzp) & (ndf.z <= rzp),'y'] = 0 
                 
             if rs == 0:
                 tp = tp - (1 - norm.cdf(rzp))
@@ -77,7 +77,7 @@ def app():
                                 
             if shade == "Center":
                 z = norm.ppf(((100-sp)/2)/100)
-                ndf.loc[(ndf.z <= z) | (ndf.x >= -z),'y'] = 0
+                ndf.loc[(ndf.z <= z) | (ndf.z >= -z),'y'] = 0
                                 
             if shade == "Right":
                 z = norm.ppf((100-sp)/100)
@@ -86,7 +86,7 @@ def app():
             st.plotly_chart(fig, use_container_width=True) 
               
         with g1:
-            st.markdown(f"z-Score: {z}")
+            st.markdown(f"z-Score: {z}") 
             
     # store variables
 
